@@ -1,0 +1,51 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: sampleapp
+  namespace: airflow
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster  
+  image: "hakanilter/spark:latest"
+  imagePullPolicy: Always
+  mainApplicationFile: local:///src/test.py
+  sparkVersion: "3.2.0"
+  sparkConf:
+    spark.sql.catalogImplementation: "hive"
+    spark.hadoop.fs.s3a.fast.upload: "true"
+    spark.hadoop.fs.s3a.path.style.access: "true"
+    spark.kubernetes.submission.waitAppCompletion: "true"
+  restartPolicy:
+    type: Never
+  driver:
+    cores: 1
+    coreLimit: "1024m"
+    memory: "1024m"
+    labels:
+      version: 3.1.1
+    serviceAccount: airflow-worker
+    env:
+      - name: SOURCE_FILE
+        value: "s3://mybucket/myfile.csv"
+      - name: TARGET_FILE
+        value: "s3://mybucket/parquet"
+      - name: AWS_ACCESS_KEY_ID
+        value: XXX
+      - name: AWS_SECRET_KEY
+        value: YYY
+  executor:
+    cores: 1
+    instances: 3
+    memory: "1024m"
+    labels:
+      version: 3.1.1
+    env:
+      - name: SOURCE_FILE
+        value: "s3://mybucket/myfile.csv"
+      - name: TARGET_FILE
+        value: "s3://mybucket/parquet"    
+      - name: AWS_ACCESS_KEY_ID
+        value: XXX
+      - name: AWS_SECRET_KEY
+        value: YYY
